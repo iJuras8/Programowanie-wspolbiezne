@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:TP.ConcurrentProgramming.Presentation.ViewModel;assembly=TP.ConcurrentProgramming.PresentationViewModel"
         mc:Ignorable="d"
-        Title="Presentation layer targeting reactive behaviour" Height="500" Width="450">
+        Title="Presentation layer targeting reactive behaviour" 
+        SizeToContent="WidthAndHeight" MinWidth="450" MinHeight="500">
 
     <Window.DataContext>
         <vm:MainWindowViewModel />
@@ -17,18 +18,18 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10" HorizontalAlignment="Center">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15" HorizontalAlignment="Center">
             <Label Content="Liczba kul:" VerticalAlignment="Center" />
-
             <TextBox Width="50" Margin="5,0,15,0" VerticalAlignment="Center" 
                      Text="{Binding NumberOfBallsInput, UpdateSourceTrigger=PropertyChanged}" />
-
             <Button Content="Start" Width="100" Padding="5" VerticalAlignment="Center" 
                     Command="{Binding StartCommand}" />
         </StackPanel>
 
-        <Border Grid.Row="1" BorderThickness="4" BorderBrush="Green">
-            <ItemsControl ItemsSource="{Binding Balls}">
+        <Border Grid.Row="1" BorderThickness="4" BorderBrush="Green" 
+                HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+
+            <ItemsControl ItemsSource="{Binding Balls}" Width="400" Height="420">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <Canvas Background="Transparent" ClipToBounds="True" />
