@@ -34,11 +34,11 @@ namespace TP.ConcurrentProgramming.Data
         throw new ArgumentNullException(nameof(upperLayerHandler));
 
       BallsList.Clear();
-
       Random random = new Random();
+      
       for (int i = 0; i < numberOfBalls; i++)
       {
-        Vector startingPosition = new(random.Next(100, 400 - 100), random.Next(100, 400 - 100));
+        Vector startingPosition = new(random.NextDouble() * 95, random.NextDouble() * 95);
         Ball newBall = new(startingPosition, startingPosition);
         upperLayerHandler(startingPosition, newBall);
         BallsList.Add(newBall);
@@ -85,7 +85,7 @@ namespace TP.ConcurrentProgramming.Data
     private void Move(object? x)
     {
       foreach (Ball item in BallsList)
-        item.Move(new Vector((RandomGenerator.NextDouble() - 0.5) * 10, (RandomGenerator.NextDouble() - 0.5) * 10));
+        item.Move(new Vector((RandomGenerator.NextDouble() - 0.5) * 2, (RandomGenerator.NextDouble() - 0.5) * 2));
     }
 
     #endregion private

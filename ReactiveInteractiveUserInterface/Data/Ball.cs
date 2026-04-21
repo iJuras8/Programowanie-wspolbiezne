@@ -4,9 +4,9 @@ namespace TP.ConcurrentProgramming.Data
 {
     internal class Ball : IBall
     {
-        private readonly double _boardWidth = 400.0;
-        private readonly double _boardHeight = 420.0;
-        private readonly double _diameter = 20.0;
+        private readonly double _boardWidth = 100.0;
+        private readonly double _boardHeight = 100.0;
+        private readonly double _diameter = 5.0;
 
         #region ctor
 
@@ -41,22 +41,14 @@ namespace TP.ConcurrentProgramming.Data
             double newY = Position.y + delta.y;
 
             if (newX < 0)
-            {
-                newX = 0; 
-            }
+                newX = 0;
             else if (newX > _boardWidth - _diameter)
-            {
-                newX = _boardWidth - _diameter; 
-            }
+                newX = _boardWidth - _diameter;
 
             if (newY < 0)
-            {
-                newY = 0; 
-            }
+                newY = 0;
             else if (newY > _boardHeight - _diameter)
-            {
-                newY = _boardHeight - _diameter; 
-            }
+                newY = _boardHeight - _diameter;
 
             Position = new Vector(newX, newY);
             RaiseNewPositionChangeNotification();
