@@ -39,7 +39,11 @@ namespace TP.ConcurrentProgramming.Data
       for (int i = 0; i < numberOfBalls; i++)
       {
         Vector startingPosition = new(random.NextDouble() * 95, random.NextDouble() * 95);
-        Ball newBall = new(startingPosition, startingPosition);
+        
+        Vector startingVelocity = new((random.NextDouble() - 0.5) * 2, (random.NextDouble() - 0.5) * 2);
+        
+        Ball newBall = new(startingPosition, startingVelocity);
+        
         upperLayerHandler(startingPosition, newBall);
         BallsList.Add(newBall);
       }
