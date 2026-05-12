@@ -42,6 +42,14 @@ namespace TP.ConcurrentProgramming.Data
             }
         }
 
+        public IVector Position
+        {
+            get
+            {
+                lock (_lock) { return _position; }
+            }
+        }
+
         #endregion IBall
 
         #region Threading & Movement
