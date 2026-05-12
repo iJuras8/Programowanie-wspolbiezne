@@ -1,19 +1,27 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace TP.ConcurrentProgramming.Data
 {
-    internal class Ball : IBall
+    internal class Ball : IBall, IDisposable
     {
-        private readonly double _boardWidth = 100.0;
-        private readonly double _boardHeight = 100.0;
-        private readonly double _diameter = 5.0;
+        public double Diameter { get; } = 5.0;
+        public double Mass { get; } = 1.0;
+
+        private readonly object _lock = new object();
+
+        private bool _isDisposed = false;
+        private readonly int _delayMs = 16; 
+
+        private Vector _position;
+        private IVector _velocity;
 
         #region ctor
 
         internal Ball(Vector initialPosition, Vector initialVelocity)
         {
-            Position = initialPosition;
-            Velocity = initialVelocity;
+            _position = initialPosition;
+            _velocity = initialVelocity;
         }
 
         #endregion ctor
@@ -22,38 +30,58 @@ namespace TP.ConcurrentProgramming.Data
 
         public event EventHandler<IVector>? NewPositionNotification;
 
-        public IVector Velocity { get; set; }
+        public IVector Velocity
+        {
+            get
+            {
+                lock (_lock) { return _velocity; }
+            }
+            set
+            {
+                lock (_lock) { _velocity = value; }
+            }
+        }
 
         #endregion IBall
 
-        #region private
+        #region Threading & Movement
 
-        private Vector Position;
+        internal void StartMovement()
+        {
+            Task.Run(MoveLoop);
+        }
+
+        private async Task MoveLoop()
+        {
+            while (!_isDisposed)
+            {
+                lock (_lock)
+                {
+
+                    double newX = _position.x + _velocity.x;
+                    double newY = _position.y + _velocity.y;
+
+                    _position = new Vector(newX, newY);
+                }
+
+                RaiseNewPositionChangeNotification();
+
+                await Task.Delay(_delayMs);
+            }
+        }
 
         private void RaiseNewPositionChangeNotification()
         {
-            NewPositionNotification?.Invoke(this, Position);
+            Vector currentPos;
+            lock (_lock) { currentPos = _position; }
+            NewPositionNotification?.Invoke(this, currentPos);
         }
 
-        internal void Move(Vector delta)
+        public void Dispose()
         {
-            double newX = Position.x + delta.x;
-            double newY = Position.y + delta.y;
-
-            if (newX < 0)
-                newX = 0;
-            else if (newX > _boardWidth - _diameter)
-                newX = _boardWidth - _diameter;
-
-            if (newY < 0)
-                newY = 0;
-            else if (newY > _boardHeight - _diameter)
-                newY = _boardHeight - _diameter;
-
-            Position = new Vector(newX, newY);
-            RaiseNewPositionChangeNotification();
+            _isDisposed = true;
         }
 
-        #endregion private
+        #endregion Threading & Movement
     }
 }

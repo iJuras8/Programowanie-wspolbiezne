@@ -10,6 +10,7 @@ namespace TP.ConcurrentProgramming.Presentation.Model
     {
         private readonly double _scaleX;
         private readonly double _scaleY;
+        private readonly System.Threading.SynchronizationContext _syncContext = System.Threading.SynchronizationContext.Current;
 
         public ModelBall(double abstractLeft, double abstractTop, LogicIBall underneathBall, double scaleX, double scaleY, double abstractDiameter)
         {
@@ -71,7 +72,17 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
         private void RaisePropertyChanged([CallerMemberName] string propertyName = "")
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (_syncContext != null)
+            {
+                _syncContext.Post(_ =>
+                {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                }, null);
+            }
+            else
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         #endregion private
