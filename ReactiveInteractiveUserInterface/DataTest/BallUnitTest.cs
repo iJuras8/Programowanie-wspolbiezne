@@ -1,36 +1,45 @@
-﻿//____________________________________________________________________________________________________________________________________
-//
-//  Copyright (C) 2024, Mariusz Postol LODZ POLAND.
-//
-//  To be in touch join the community by pressing the `Watch` button and get started commenting using the discussion panel at
-//
-//  https://github.com/mpostol/TP/discussions/182
-//
-//_____________________________________________________________________________________________________________________________________
+﻿using System.Threading.Tasks;
 
 namespace TP.ConcurrentProgramming.Data.Test
 {
-  [TestClass]
-  public class BallUnitTest
-  {
-    [TestMethod]
-    public void ConstructorTestMethod()
+    [TestClass]
+    public class BallUnitTest
     {
-      Vector testinVector = new Vector(0.0, 0.0);
-      Ball newInstance = new(testinVector, testinVector);
-    }
+        [TestMethod]
+        public void ConstructorTestMethod()
+        {
+            Vector initialPosition = new Vector(10.0, 10.0);
+            Vector initialVelocity = new Vector(1.0, -1.0);
 
-    [TestMethod]
-    public void MoveTestMethod()
-    {
-      Vector initialPosition = new(10.0, 10.0);
-      Ball newInstance = new(initialPosition, new Vector(0.0, 0.0));
-      IVector curentPosition = new Vector(0.0, 0.0);
-      int numberOfCallBackCalled = 0;
-      newInstance.NewPositionNotification += (sender, position) => { Assert.IsNotNull(sender); curentPosition = position; numberOfCallBackCalled++; };
-      newInstance.Move(new Vector(0.0, 0.0));
-      Assert.AreEqual<int>(1, numberOfCallBackCalled);
-      Assert.AreEqual<IVector>(initialPosition, curentPosition);
+            Ball newInstance = new(initialPosition, initialVelocity);
+
+            Assert.AreEqual(10.0, newInstance.Position.x);
+            Assert.AreEqual(10.0, newInstance.Position.y);
+
+            Assert.AreEqual(1.0, newInstance.Velocity.x);
+            Assert.AreEqual(-1.0, newInstance.Velocity.y);
+        }
+
+        [TestMethod]
+        public async Task StartMovementAndNotificationTestMethod()
+        {
+            Vector initialPosition = new(10.0, 10.0);
+            Vector initialVelocity = new(1.0, 1.0);
+
+            using Ball newInstance = new(initialPosition, initialVelocity);
+
+            bool eventRaised = false;
+            newInstance.NewPositionNotification += (sender, position) =>
+            {
+                Assert.IsNotNull(sender);
+                eventRaised = true;
+            };
+
+            newInstance.StartMovement();
+
+            await Task.Delay(50);
+
+            Assert.IsTrue(eventRaised);
+        }
     }
-  }
 }
