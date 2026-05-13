@@ -10,7 +10,6 @@ namespace TP.ConcurrentProgramming.Data
 
         public DataImplementation()
         {
-            // Całkowicie wykasowaliśmy Timer!
         }
 
         #endregion ctor
@@ -24,7 +23,6 @@ namespace TP.ConcurrentProgramming.Data
             if (upperLayerHandler == null)
                 throw new ArgumentNullException(nameof(upperLayerHandler));
 
-            // Zabezpieczenie: ubijamy ewentualne stare wątki przed stworzeniem nowych
             foreach (var ball in BallsList)
             {
                 ball.Dispose();
@@ -43,7 +41,6 @@ namespace TP.ConcurrentProgramming.Data
                 upperLayerHandler(startingPosition, newBall);
                 BallsList.Add(newBall);
 
-                // Uruchamiamy niezależny wątek na nowo utworzonej kuli
                 newBall.StartMovement();
             }
         }
@@ -58,7 +55,6 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
-                    // Kiedy zamykamy aplikację/resetujemy, musimy zabić wszystkie Taski z kulek
                     foreach (var ball in BallsList)
                     {
                         ball.Dispose();
@@ -83,8 +79,6 @@ namespace TP.ConcurrentProgramming.Data
 
         private bool Disposed = false;
         private List<Ball> BallsList = [];
-
-        // Znika cała metoda Move(object? x) oraz zmienna Timera
 
         #endregion private
 
