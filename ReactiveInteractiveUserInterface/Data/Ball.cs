@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Threading;
 
 namespace TP.ConcurrentProgramming.Data
 {
@@ -10,8 +11,9 @@ namespace TP.ConcurrentProgramming.Data
 
         private readonly object _lock = new object();
 
-        private bool _isDisposed = false;
-        private readonly int _delayMs = 16; 
+        private Timer? _movementTimer;
+        private readonly Stopwatch _stopwatch = new Stopwatch();
+        private long _lastTimeMs = 0;
 
         private Vector _position;
         private IVector _velocity;
@@ -32,50 +34,46 @@ namespace TP.ConcurrentProgramming.Data
 
         public IVector Velocity
         {
-            get
-            {
-                lock (_lock) { return _velocity; }
-            }
-            set
-            {
-                lock (_lock) { _velocity = value; }
-            }
+            get { lock (_lock) { return _velocity; } }
+            set { lock (_lock) { _velocity = value; } }
         }
 
         public IVector Position
         {
-            get
-            {
-                lock (_lock) { return _position; }
-            }
+            get { lock (_lock) { return _position; } }
         }
 
         #endregion IBall
 
-        #region Threading & Movement
+        #region Threading & Real-Time Physics
 
         internal void StartMovement()
         {
-            Task.Run(MoveLoop);
+            _stopwatch.Start();
+            _lastTimeMs = _stopwatch.ElapsedMilliseconds;
+
+            _movementTimer = new Timer(MoveLoop, null, 0, 16);
         }
 
-        private async Task MoveLoop()
+        private void MoveLoop(object? state)
         {
-            while (!_isDisposed)
+            if (_movementTimer == null) return;
+
+            long currentTimeMs = _stopwatch.ElapsedMilliseconds;
+            long elapsedMs = currentTimeMs - _lastTimeMs;
+            _lastTimeMs = currentTimeMs;
+
+            double timeMultiplier = elapsedMs / 16.0;
+
+            lock (_lock)
             {
-                lock (_lock)
-                {
+                double newX = _position.x + (_velocity.x * timeMultiplier);
+                double newY = _position.y + (_velocity.y * timeMultiplier);
 
-                    double newX = _position.x + _velocity.x;
-                    double newY = _position.y + _velocity.y;
-
-                    _position = new Vector(newX, newY);
-                }
-
-                RaiseNewPositionChangeNotification();
-
-                await Task.Delay(_delayMs);
+                _position = new Vector(newX, newY);
             }
+
+            RaiseNewPositionChangeNotification();
         }
 
         private void RaiseNewPositionChangeNotification()
@@ -87,9 +85,12 @@ namespace TP.ConcurrentProgramming.Data
 
         public void Dispose()
         {
-            _isDisposed = true;
+            _movementTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _movementTimer?.Dispose();
+            _movementTimer = null;
+            _stopwatch.Stop();
         }
 
-        #endregion Threading & Movement
+        #endregion Threading & Real-Time Physics
     }
 }

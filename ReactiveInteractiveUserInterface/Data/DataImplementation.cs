@@ -38,6 +38,13 @@ namespace TP.ConcurrentProgramming.Data
 
                 Ball newBall = new(startingPosition, startingVelocity);
 
+                int ballNumber = i + 1;
+
+                newBall.NewPositionNotification += (sender, currentPos) =>
+                {
+                    _logger.LogDiagnosticData($"Kula {ballNumber}", new Vector(currentPos.x, currentPos.y), newBall.Velocity);
+                };
+
                 upperLayerHandler(startingPosition, newBall);
                 BallsList.Add(newBall);
 
@@ -60,6 +67,7 @@ namespace TP.ConcurrentProgramming.Data
                         ball.Dispose();
                     }
                     BallsList.Clear();
+                    _logger.Dispose();
                 }
                 Disposed = true;
             }
@@ -79,6 +87,7 @@ namespace TP.ConcurrentProgramming.Data
 
         private bool Disposed = false;
         private List<Ball> BallsList = [];
+        private Logger _logger = new Logger();
 
         #endregion private
 
