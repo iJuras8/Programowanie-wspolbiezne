@@ -6,13 +6,9 @@ namespace TP.ConcurrentProgramming.Data
 {
     internal class DataImplementation : DataAbstractAPI
     {
+        private readonly Logger _logger = new Logger();
+
         #region ctor
-
-        public DataImplementation()
-        {
-            // Całkowicie wykasowaliśmy Timer!
-        }
-
         #endregion ctor
 
         #region DataAbstractAPI
@@ -24,7 +20,6 @@ namespace TP.ConcurrentProgramming.Data
             if (upperLayerHandler == null)
                 throw new ArgumentNullException(nameof(upperLayerHandler));
 
-            // Zabezpieczenie: ubijamy ewentualne stare wątki przed stworzeniem nowych
             foreach (var ball in BallsList)
             {
                 ball.Dispose();
@@ -40,10 +35,16 @@ namespace TP.ConcurrentProgramming.Data
 
                 Ball newBall = new(startingPosition, startingVelocity);
 
+                int ballId = i + 1;
+
+                newBall.NewPositionNotification += (sender, currentPos) =>
+                {
+                    _logger.Log($"Kula {ballId}", currentPos, newBall.Velocity);
+                };
+
                 upperLayerHandler(startingPosition, newBall);
                 BallsList.Add(newBall);
 
-                // Uruchamiamy niezależny wątek na nowo utworzonej kuli
                 newBall.StartMovement();
             }
         }
@@ -58,12 +59,13 @@ namespace TP.ConcurrentProgramming.Data
             {
                 if (disposing)
                 {
-                    // Kiedy zamykamy aplikację/resetujemy, musimy zabić wszystkie Taski z kulek
                     foreach (var ball in BallsList)
                     {
                         ball.Dispose();
                     }
                     BallsList.Clear();
+
+                    _logger.Dispose();
                 }
                 Disposed = true;
             }
@@ -84,30 +86,17 @@ namespace TP.ConcurrentProgramming.Data
         private bool Disposed = false;
         private List<Ball> BallsList = [];
 
-        // Znika cała metoda Move(object? x) oraz zmienna Timera
-
         #endregion private
 
         #region TestingInfrastructure
+        [Conditional("DEBUG")]
+        internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList) { returnBallsList(BallsList); }
 
         [Conditional("DEBUG")]
-        internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
-        {
-            returnBallsList(BallsList);
-        }
+        internal void CheckNumberOfBalls(Action<int> returnNumberOfBalls) { returnNumberOfBalls(BallsList.Count); }
 
         [Conditional("DEBUG")]
-        internal void CheckNumberOfBalls(Action<int> returnNumberOfBalls)
-        {
-            returnNumberOfBalls(BallsList.Count);
-        }
-
-        [Conditional("DEBUG")]
-        internal void CheckObjectDisposed(Action<bool> returnInstanceDisposed)
-        {
-            returnInstanceDisposed(Disposed);
-        }
-
+        internal void CheckObjectDisposed(Action<bool> returnInstanceDisposed) { returnInstanceDisposed(Disposed); }
         #endregion TestingInfrastructure
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TP.ConcurrentProgramming.Data
@@ -11,10 +12,13 @@ namespace TP.ConcurrentProgramming.Data
         private readonly object _lock = new object();
 
         private bool _isDisposed = false;
-        private readonly int _delayMs = 16; 
+        private readonly int _delayMs = 16;
 
         private Vector _position;
         private IVector _velocity;
+
+        private string _color = "Red";
+        private Timer? _realTimeTimer;
 
         #region ctor
 
@@ -32,22 +36,18 @@ namespace TP.ConcurrentProgramming.Data
 
         public IVector Velocity
         {
-            get
-            {
-                lock (_lock) { return _velocity; }
-            }
-            set
-            {
-                lock (_lock) { _velocity = value; }
-            }
+            get { lock (_lock) { return _velocity; } }
+            set { lock (_lock) { _velocity = value; } }
         }
 
         public IVector Position
         {
-            get
-            {
-                lock (_lock) { return _position; }
-            }
+            get { lock (_lock) { return _position; } }
+        }
+
+        public string Color
+        {
+            get { lock (_lock) { return _color; } }
         }
 
         #endregion IBall
@@ -57,6 +57,16 @@ namespace TP.ConcurrentProgramming.Data
         internal void StartMovement()
         {
             Task.Run(MoveLoop);
+
+            _realTimeTimer = new Timer(ChangeColor, null, 0, 1000);
+        }
+
+        private void ChangeColor(object? state)
+        {
+            lock (_lock)
+            {
+                _color = _color == "Red" ? "Blue" : "Red";
+            }
         }
 
         private async Task MoveLoop()
@@ -65,7 +75,6 @@ namespace TP.ConcurrentProgramming.Data
             {
                 lock (_lock)
                 {
-
                     double newX = _position.x + _velocity.x;
                     double newY = _position.y + _velocity.y;
 
@@ -88,6 +97,8 @@ namespace TP.ConcurrentProgramming.Data
         public void Dispose()
         {
             _isDisposed = true;
+            _realTimeTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _realTimeTimer?.Dispose();
         }
 
         #endregion Threading & Movement

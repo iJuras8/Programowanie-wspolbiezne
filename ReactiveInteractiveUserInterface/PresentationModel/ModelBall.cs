@@ -12,10 +12,14 @@ namespace TP.ConcurrentProgramming.Presentation.Model
         private readonly double _scaleY;
         private readonly System.Threading.SynchronizationContext _syncContext = System.Threading.SynchronizationContext.Current;
 
+        private readonly LogicIBall _underneathBall;
+
         public ModelBall(double abstractLeft, double abstractTop, LogicIBall underneathBall, double scaleX, double scaleY, double abstractDiameter)
         {
             _scaleX = scaleX;
             _scaleY = scaleY;
+
+            _underneathBall = underneathBall;
 
             LeftBackingField = abstractLeft * _scaleX;
             TopBackingField = abstractTop * _scaleY;
@@ -51,6 +55,8 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
         public double Diameter { get; init; }
 
+        public string Color => _underneathBall.Color;
+
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -68,6 +74,8 @@ namespace TP.ConcurrentProgramming.Presentation.Model
         {
             Left = e.x * _scaleX;
             Top = e.y * _scaleY;
+
+            RaisePropertyChanged(nameof(Color));
         }
 
         private void RaisePropertyChanged([CallerMemberName] string propertyName = "")
